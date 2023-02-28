@@ -21,7 +21,7 @@ const { connect } = require("./config/database");
 
 const { PORT, PVT_KEY, VMMCONTRACT } = require("./config/serverConfig");
 
-const candleRoute = require("./routes/candleRoutes");
+const ApiRoutes = require("./routes/index");
 
 const PRECISION = 1000000000000000000;
 
@@ -57,7 +57,7 @@ app.use(bodyParser.raw());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/candleRoute", candleRoute); // /candleRoute/granularity?candle=''
+app.use("/ApiRoutes", ApiRoutes); // /candleRoute/granularity?candle=''
 
 //cleaned
 const server = app.listen(PORT, async () => {
@@ -411,43 +411,43 @@ const positionAction = async (opHash) => {
 
 // LEADERBOARD DATA -------------------------------------------------------------------------------------------------------------------
 
-app.get("/leaderboard", async (req, res) => {
-  try {
-    const result = await PositionHistory.find({})
-      .then(function (data) {
-        return data;
-      })
-      .catch((err) => console.log(err));
-    result.sort(function (a, b) {
-      return parseFloat(a.Totalpnl) - parseFloat(b.Totalpnl);
-    });
+// app.get("/leaderboard", async (req, res) => {
+//   try {
+//     const result = await PositionHistory.find({})
+//       .then(function (data) {
+//         return data;
+//       })
+//       .catch((err) => console.log(err));
+//     result.sort(function (a, b) {
+//       return parseFloat(a.Totalpnl) - parseFloat(b.Totalpnl);
+//     });
 
-    res.send(result);
-  } catch (err) {
-    console.log(err);
-  }
-});
+//     res.send(result);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
 
 // POSITION History-------------------------------------------------------------------------------------------------------------------
 
-app.post("/positionshistory", async (req, res) => {
-  let address = req.body.address;
-  const result = await PositionHistory.findOne({ Address: address })
-    .select("Address")
-    .lean();
-  if (result) {
-    let data = await PositionHistory.findOne({ Address: address })
-      .then((res) => {
-        return res;
-      })
-      .catch((err) => {
-        return false;
-      });
-    res.send(data.CompletedPosition);
-  } else {
-    res.send(false);
-  }
-});
+// app.post("/positionshistory", async (req, res) => {
+//   let address = req.body.address;
+//   const result = await PositionHistory.findOne({ Address: address })
+//     .select("Address")
+//     .lean();
+//   if (result) {
+//     let data = await PositionHistory.findOne({ Address: address })
+//       .then((res) => {
+//         return res;
+//       })
+//       .catch((err) => {
+//         return false;
+//       });
+//     res.send(data.CompletedPosition);
+//   } else {
+//     res.send(false);
+//   }
+// });
 
 // POST ACTION -------------------------------------------------------------------------------------------------------------------
 
@@ -457,20 +457,25 @@ const tradeaction = async () => {
     .then((result) => {
       return result.data;
     });
+
   let marketpricedata = (storage.current_mark_price / PRECISION).toFixed(4);
 
+  //DB level
   var previous_data_Minute = await TradeDataMinute.find()
     .limit(1)
     .sort({ $natural: -1 })
     .limit(1);
+
   var previous_data_Hour = await TradeDataHour.find()
     .limit(1)
     .sort({ $natural: -1 })
     .limit(1);
+
   var previous_data_Day = await TradeDataDay.find()
     .limit(1)
     .sort({ $natural: -1 })
     .limit(1);
+
   if (previous_data_Minute.length == 0) {
     let data = {
       Date: new Date(),
