@@ -1,11 +1,11 @@
 const express = require("express");
 const positionController = require("../controller/positionController");
-const candleController = require("../controller/candleController");
+const tradeDataController = require("../controller/tradeDataController");
 
 const router = express.Router();
 
 //   route --> ApiRoutes/granularity
-router.get("/granularity", candleController.candleData);
+router.get("/granularity", tradeDataController.candleData);
 
 //    route --->  ApiRoutes/leaderboard
 router.get("/leaderboard", positionController.getLeaderBoardData);

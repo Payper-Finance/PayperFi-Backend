@@ -34,6 +34,9 @@ class PositionRepository {
       throw error;
     }
   }
+
+
+  
 }
 
 module.exports = PositionRepository;

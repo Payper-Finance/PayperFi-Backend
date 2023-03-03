@@ -14,7 +14,7 @@ const getLeaderBoardData = async (req, res) => {
 
 const getPositionHistoryData = async (req, res) => {
   try {
-    let address = req.body.address;
+    let address = req.body.address; //TODO->?
     const data = await PositionRepository.getPositionHistory(address);
     if (data) {
       res.send(data.CompletedPosition);

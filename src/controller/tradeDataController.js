@@ -3,7 +3,7 @@ const {
   getData5min,
   getDataDay,
   getDataHour,
-} = require("../repository/candleRepository");
+} = require("../repository/tradeDataRepository");
 
 const { helperCandle } = require("../utils/helper");
 

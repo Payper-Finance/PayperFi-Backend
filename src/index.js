@@ -1,10 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-
 const socket = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
+
 const {
   TradeDataHour,
   TradeDataDay,
@@ -20,6 +20,8 @@ const { InMemorySigner } = require("@taquito/signer");
 const { connect } = require("./config/database");
 
 const { PORT, PVT_KEY, VMMCONTRACT } = require("./config/serverConfig");
+
+const { tradeaction } = require("./utils/tradeDatahelper");
 
 const ApiRoutes = require("./routes/index");
 
@@ -57,7 +59,7 @@ app.use(bodyParser.raw());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/ApiRoutes", ApiRoutes); // /candleRoute/granularity?candle=''
+app.use("/ApiRoutes", ApiRoutes); //
 
 //cleaned
 const server = app.listen(PORT, async () => {
@@ -451,260 +453,266 @@ const positionAction = async (opHash) => {
 
 // POST ACTION -------------------------------------------------------------------------------------------------------------------
 
-const tradeaction = async () => {
-  let storage = await axios
-    .get(`https://api.ghostnet.tzkt.io/v1/contracts/${VMMCONTRACT}/storage/`)
-    .then((result) => {
-      return result.data;
-    });
+// const tradeaction = async () => {
+//   let storage = await axios
+//     .get(`https://api.ghostnet.tzkt.io/v1/contracts/${VMMCONTRACT}/storage/`)
+//     .then((result) => {
+//       return result.data;
+//     });
 
-  let marketpricedata = (storage.current_mark_price / PRECISION).toFixed(4);
+//   let marketpricedata = (storage.current_mark_price / PRECISION).toFixed(4);
 
-  //DB level
-  var previous_data_Minute = await TradeDataMinute.find()
-    .limit(1)
-    .sort({ $natural: -1 })
-    .limit(1);
+//   // fetching data -> previous minute
+//   var previous_data_Minute = await TradeDataMinute.find()
+//     .limit(1)
+//     .sort({ $natural: -1 })
+//     .limit(1);
 
-  var previous_data_Hour = await TradeDataHour.find()
-    .limit(1)
-    .sort({ $natural: -1 })
-    .limit(1);
+//   // previous hour
+//   var previous_data_Hour = await TradeDataHour.find()
+//     .limit(1)
+//     .sort({ $natural: -1 })
+//     .limit(1);
 
-  var previous_data_Day = await TradeDataDay.find()
-    .limit(1)
-    .sort({ $natural: -1 })
-    .limit(1);
+//   //previous day
+//   var previous_data_Day = await TradeDataDay.find()
+//     .limit(1)
+//     .sort({ $natural: -1 })
+//     .limit(1);
 
-  if (previous_data_Minute.length == 0) {
-    let data = {
-      Date: new Date(),
-      Open: marketpricedata,
-      Close: marketpricedata,
-      High: marketpricedata,
-      Low: marketpricedata,
-    };
-    TradeDataMinute.create(data);
-    TradeDataHour.create(data);
-    TradeDataDay.create(data);
-    console.log("1 document upDated 000.1");
-    return;
-  }
-  var newdate_Minute = new Date().getMinutes();
-  var newdate_Hour = new Date().getHours();
-  var newdate_Day = new Date().getDate();
-  console.log(newdate_Hour);
+//   if (previous_data_Minute.length == 0) {
+//     let data = {
+//       Date: new Date(),
+//       Open: marketpricedata,
+//       Close: marketpricedata,
+//       High: marketpricedata,
+//       Low: marketpricedata,
+//     };
+//     //create in db
+//     TradeDataMinute.create(data);
+//     TradeDataHour.create(data);
+//     TradeDataDay.create(data);
+//     console.log("1 document upDated 000.1");
+//     return;
+//   }
+//   var newdate_Minute = new Date().getMinutes();
+//   var newdate_Hour = new Date().getHours();
+//   var newdate_Day = new Date().getDate();
+//   console.log(newdate_Hour);
 
-  console.log(newdate_Day);
+//   console.log(newdate_Day);
 
-  if (previous_data_Minute[0].Date.getMinutes() - newdate_Minute >= 5) {
-    let data = {
-      Date: new Date(),
-      Open: marketpricedata,
-      Close: marketpricedata,
-      High: marketpricedata,
-      Low: marketpricedata,
-    };
-    TradeDataMinute.create(data);
-    console.log("1 document upDated 000.12");
-  }
+//   if (previous_data_Minute[0].Date.getMinutes() - newdate_Minute >= 5) {
+//     let data = {
+//       Date: new Date(),
+//       Open: marketpricedata,
+//       Close: marketpricedata,
+//       High: marketpricedata,
+//       Low: marketpricedata,
+//     };
+//     // create in db
+//     TradeDataMinute.create(data);
+//     console.log("1 document upDated 000.12");
+//   }
 
-  if (previous_data_Hour[0].Date.getHours() - newdate_Hour >= 1) {
-    let data = {
-      Date: new Date(),
-      Open: marketpricedata,
-      Close: marketpricedata,
-      High: marketpricedata,
-      Low: marketpricedata,
-    };
-    TradeDataHour.create(data);
-    console.log("1 document upDated 000.123");
-  }
-  console.log(previous_data_Day[0]);
-  if (previous_data_Day[0].Date.getDate() - newdate_Day >= 1) {
-    let data = {
-      Date: new Date(),
-      Open: marketpricedata,
-      Close: marketpricedata,
-      High: marketpricedata,
-      Low: marketpricedata,
-    };
-    TradeDataDay.create(data);
-    console.log("1 document upDated");
-    return;
-  } else {
-    if (marketpricedata > previous_data_Minute[0].High) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Minute[0].Date,
-          Open: previous_data_Minute[0].Open,
-          Close: marketpricedata,
-          High: marketpricedata,
-          Low: previous_data_Minute[0].Low,
-        },
-      };
+//   if (previous_data_Hour[0].Date.getHours() - newdate_Hour >= 1) {
+//     let data = {
+//       Date: new Date(),
+//       Open: marketpricedata,
+//       Close: marketpricedata,
+//       High: marketpricedata,
+//       Low: marketpricedata,
+//     };
+//     //create in db
+//     TradeDataHour.create(data);
+//     console.log("1 document upDated 000.123");
+//   }
+//   console.log(previous_data_Day[0]);
+//   if (previous_data_Day[0].Date.getDate() - newdate_Day >= 1) {
+//     let data = {
+//       Date: new Date(),
+//       Open: marketpricedata,
+//       Close: marketpricedata,
+//       High: marketpricedata,
+//       Low: marketpricedata,
+//     };
+//     //create in db
+//     TradeDataDay.create(data);
+//     console.log("1 document upDated");
+//     return;
+//   } else {
+//     if (marketpricedata > previous_data_Minute[0].High) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Minute[0].Date,
+//           Open: previous_data_Minute[0].Open,
+//           Close: marketpricedata,
+//           High: marketpricedata,
+//           Low: previous_data_Minute[0].Low,
+//         },
+//       };
+//       //find in db and update
+//       TradeDataMinute.findByIdAndUpdate(
+//         { _id: previous_data_Minute[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else if (marketpricedata < previous_data_Minute[0].Low) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Minute[0].Date,
+//           Open: previous_data_Minute[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Minute[0].High,
+//           Low: marketpricedata,
+//         },
+//       };
+//       TradeDataMinute.findByIdAndUpdate(
+//         { _id: previous_data_Minute[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Minute[0].Date,
+//           Open: previous_data_Minute[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Minute[0].High,
+//           Low: previous_data_Minute[0].Low,
+//         },
+//       };
+//       TradeDataMinute.findByIdAndUpdate(
+//         { _id: previous_data_Minute[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     }
 
-      TradeDataMinute.findByIdAndUpdate(
-        { _id: previous_data_Minute[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else if (marketpricedata < previous_data_Minute[0].Low) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Minute[0].Date,
-          Open: previous_data_Minute[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Minute[0].High,
-          Low: marketpricedata,
-        },
-      };
-      TradeDataMinute.findByIdAndUpdate(
-        { _id: previous_data_Minute[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else {
-      var newvalues = {
-        $set: {
-          time: previous_data_Minute[0].Date,
-          Open: previous_data_Minute[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Minute[0].High,
-          Low: previous_data_Minute[0].Low,
-        },
-      };
-      TradeDataMinute.findByIdAndUpdate(
-        { _id: previous_data_Minute[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    }
+//     if (marketpricedata > previous_data_Hour[0].High) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Hour[0].Date,
+//           Open: previous_data_Hour[0].Open,
+//           Close: marketpricedata,
+//           High: marketpricedata,
+//           Low: previous_data_Hour[0].Low,
+//         },
+//       };
 
-    if (marketpricedata > previous_data_Hour[0].High) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Hour[0].Date,
-          Open: previous_data_Hour[0].Open,
-          Close: marketpricedata,
-          High: marketpricedata,
-          Low: previous_data_Hour[0].Low,
-        },
-      };
+//       TradeDataHour.findByIdAndUpdate(
+//         { _id: previous_data_Hour[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else if (marketpricedata < previous_data_Hour[0].Low) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Hour[0].Date,
+//           Open: previous_data_Hour[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Hour[0].High,
+//           Low: marketpricedata,
+//         },
+//       };
+//       TradeDataHour.findByIdAndUpdate(
+//         { _id: previous_data_Hour[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Hour[0].Date,
+//           Open: previous_data_Hour[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Hour[0].High,
+//           Low: previous_data_Hour[0].Low,
+//         },
+//       };
+//       TradeDataHour.findByIdAndUpdate(
+//         { _id: previous_data_Hour[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     }
 
-      TradeDataHour.findByIdAndUpdate(
-        { _id: previous_data_Hour[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else if (marketpricedata < previous_data_Hour[0].Low) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Hour[0].Date,
-          Open: previous_data_Hour[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Hour[0].High,
-          Low: marketpricedata,
-        },
-      };
-      TradeDataHour.findByIdAndUpdate(
-        { _id: previous_data_Hour[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else {
-      var newvalues = {
-        $set: {
-          time: previous_data_Hour[0].Date,
-          Open: previous_data_Hour[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Hour[0].High,
-          Low: previous_data_Hour[0].Low,
-        },
-      };
-      TradeDataHour.findByIdAndUpdate(
-        { _id: previous_data_Hour[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    }
+//     if (marketpricedata > previous_data_Day[0].High) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Day[0].Date,
+//           Open: previous_data_Day[0].Open,
+//           Close: marketpricedata,
+//           High: marketpricedata,
+//           Low: previous_data_Day[0].Low,
+//         },
+//       };
 
-    if (marketpricedata > previous_data_Day[0].High) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Day[0].Date,
-          Open: previous_data_Day[0].Open,
-          Close: marketpricedata,
-          High: marketpricedata,
-          Low: previous_data_Day[0].Low,
-        },
-      };
-
-      TradeDataDay.findByIdAndUpdate(
-        { _id: previous_data_Day[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else if (marketpricedata < previous_data_Day[0].Low) {
-      var newvalues = {
-        $set: {
-          time: previous_data_Day[0].Date,
-          Open: previous_data_Day[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Day[0].High,
-          Low: marketpricedata,
-        },
-      };
-      TradeDataDay.findByIdAndUpdate(
-        { _id: previous_data_Day[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    } else {
-      var newvalues = {
-        $set: {
-          time: previous_data_Day[0].Date,
-          Open: previous_data_Day[0].Open,
-          Close: marketpricedata,
-          High: previous_data_Day[0].High,
-          Low: previous_data_Day[0].Low,
-        },
-      };
-      TradeDataDay.findByIdAndUpdate(
-        { _id: previous_data_Day[0]._id },
-        newvalues,
-        function (err, res) {
-          if (err) throw err;
-          console.log("1 document upDated");
-        }
-      );
-    }
-  }
-};
+//       TradeDataDay.findByIdAndUpdate(
+//         { _id: previous_data_Day[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else if (marketpricedata < previous_data_Day[0].Low) {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Day[0].Date,
+//           Open: previous_data_Day[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Day[0].High,
+//           Low: marketpricedata,
+//         },
+//       };
+//       TradeDataDay.findByIdAndUpdate(
+//         { _id: previous_data_Day[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     } else {
+//       var newvalues = {
+//         $set: {
+//           time: previous_data_Day[0].Date,
+//           Open: previous_data_Day[0].Open,
+//           Close: marketpricedata,
+//           High: previous_data_Day[0].High,
+//           Low: previous_data_Day[0].Low,
+//         },
+//       };
+//       TradeDataDay.findByIdAndUpdate(
+//         { _id: previous_data_Day[0]._id },
+//         newvalues,
+//         function (err, res) {
+//           if (err) throw err;
+//           console.log("1 document upDated");
+//         }
+//       );
+//     }
+//   }
+// };
 
 // SEND CANDLE DATA -------------------------------------------------------------------------------------------------------------------
 
