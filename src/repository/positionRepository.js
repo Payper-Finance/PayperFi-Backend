@@ -35,8 +35,36 @@ class PositionRepository {
     }
   }
 
+  //get address -->
+  async getPositionAddress(address) {
+    try {
+      const result = await PositionHistory.findOne({
+        Address: address,
+      });
+      return result;
+    } catch (error) {
+      console.log("Something went Wrong");
+      throw error;
+    }
+  }
 
-  
+  //update address -->
+  async updatePositionAddress(key, data) {
+    try {
+      await PositionHistory.findOneAndUpdate(key, data);
+    } catch (error) {
+      console.log("Something went wrong ");
+      throw error;
+    }
+  }
+
+  async Create(data) {
+    try {
+      await PositionHistory.create(data);
+    } catch (error) {
+      console.log("Something Went Wrong");
+    }
+  }
 }
 
 module.exports = PositionRepository;

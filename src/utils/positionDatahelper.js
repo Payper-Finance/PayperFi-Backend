@@ -1,4 +1,10 @@
+const { VMMCONTRACT } = require("../config/serverConfig");
+const PRECISION = 1000000000000000000;
+
+const PositionRepository = require("../repository/positionRepository");
+
 const positionAction = async (opHash) => {
+  this.positionRepository = new PositionRepository();
   let TransactionId = opHash;
   console.log(TransactionId);
 
@@ -16,7 +22,7 @@ const positionAction = async (opHash) => {
 
     let transaction;
     for (let i = 0; i < storage.length; i++) {
-      if (storage[i].target.address == process.env.VMMCONTRACT) {
+      if (storage[i].target.address == VMMCONTRACT) {
         transaction = storage[i];
         break;
       }
@@ -26,30 +32,31 @@ const positionAction = async (opHash) => {
     let address;
     if (action == "liquidate") {
       address = transaction.parameter.value;
-      //db
-      const liquidationResult = await PositionHistory.findOne({
-        Address: address,
-      });
+
+      //get
+      const liquidationResult =
+        await this.positionRepository.getPositionAddress(address);
+
       let liquidationcount;
       if (liquidationResult.LiquidationCount == null) {
         liquidationcount = 1;
       } else {
         liquidationcount = parseInt(liquidationResult.LiquidationCount) + 1;
       }
-      //db
-      await PositionHistory.findOneAndUpdate(
-        { Address: key },
-        {
-          $set: {
-            LiquidationCount: liquidationcount,
-          },
-        }
-      );
+
+      // update
+      let key = { Address: address };
+      let data = {
+        $set: {
+          LiquidationCount: liquidationcount,
+        },
+      };
+      await this.positionRepository.updatePositionAddress(key, data);
     } else {
       address = transaction.sender.address;
     }
-    //db
-    const result = await PositionHistory.findOne({ Address: address });
+    //get
+    const result = await this.positionRepository.getPositionAddress(address);
 
     if (result) {
       if (action == "closePosition" || action == "liquidate") {
@@ -57,16 +64,17 @@ const positionAction = async (opHash) => {
         let setcloseposition;
         let isliquidate = false;
         if (action == "liquidate") {
-          //db
-          setcloseposition = await PositionHistory.findOne({
-            Address: transaction.parameter.value,
-          });
+          // get
+          setcloseposition = await this.positionRepository.getPositionAddress(
+            transaction.parameter.value
+          );
+
           isliquidate = true;
         } else {
-          //db
-          setcloseposition = await PositionHistory.findOne({
-            Address: address,
-          });
+          //get
+          setcloseposition = await this.positionRepository.getPositionAddress(
+            address
+          );
         }
 
         let transferDetails = storage[1].parameter.value.value;
@@ -103,45 +111,46 @@ const positionAction = async (opHash) => {
             parseFloat(result.Totalpnl) + parseFloat(calculatelivepnl);
         }
         console.log(totalrealize);
-        //db
-        await PositionHistory.findOneAndUpdate(
+
+        //update
+        let CompletePositionData = {
+          $push: {
+            CompletedPosition: lastData,
+          },
+        };
+        await this.positionRepository.updatePositionAddress(
           { Address: address },
-          {
-            $push: {
-              CompletedPosition: lastData,
-            },
-          }
+          CompletePositionData
         );
-        //db
-        await PositionHistory.findOneAndUpdate(
+
+        //update
+        let TotalpnlData = {
+          $set: {
+            Totalpnl: totalrealize,
+          },
+        };
+        await this.positionRepository.updatePositionAddress(
           { Address: address },
-          {
-            $set: {
-              Totalpnl: totalrealize,
-            },
-          }
+          TotalpnlData
         );
-        let data = {
+
+        let LivePositionData = {
           $set: {
             LivePosition: {},
           },
         };
-        //db
-        await PositionHistory.findOneAndUpdate(
+        await this.positionRepository.updatePositionAddress(
           { Address: address },
-          data,
-          function (err, res) {
-            if (err) throw err;
-          }
+          LivePositionData
         );
       } else {
         console.log("test1");
         let data;
 
-        //db
-        let setcloseposition = await PositionHistory.findOne({
-          Address: address,
-        });
+        //get
+        let setcloseposition = await this.positionRepository.getPositionAddress(
+          address
+        );
 
         let positionsdetailsprev = setcloseposition.LivePosition;
 
@@ -223,14 +232,15 @@ const positionAction = async (opHash) => {
             ).toFixed(3),
           };
         }
-        //db
-        await PositionHistory.findOneAndUpdate(
+        //update
+        let LivePositionData = {
+          $set: {
+            LivePosition: data,
+          },
+        };
+        await this.positionRepository.updatePositionAddress(
           { Address: address },
-          {
-            $set: {
-              LivePosition: data,
-            },
-          }
+          LivePositionData
         );
       }
     } else {
@@ -259,8 +269,8 @@ const positionAction = async (opHash) => {
           position_amount: (position_amount / PRECISION).toFixed(3),
         },
       };
-      //db
-      await PositionHistory.create(data);
+
+      await this.positionRepository.Create(data);
     }
   } catch (err) {
     console.log(err);
