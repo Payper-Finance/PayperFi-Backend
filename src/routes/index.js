@@ -13,4 +13,6 @@ router.get("/leaderboard", positionController.getLeaderBoardData);
 //   route --> ApiRoutes/positionshistory
 router.post("/positionshistory", positionController.getPositionHistoryData);
 
+router.get("/pagination", tradeDataController.checkPagination);
+
 module.exports = router;

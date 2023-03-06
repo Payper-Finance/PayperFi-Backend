@@ -3,6 +3,7 @@ const {
   getData5min,
   getDataDay,
   getDataHour,
+  getPageDataHour,
 } = require("../repository/tradeDataRepository");
 
 const { helperCandle } = require("../utils/helper");
@@ -35,6 +36,29 @@ const candleData = async (req, res) => {
   }
 };
 
+const checkPagination = async (req, res) => {
+  try {
+    console.log(req.query.pageSize);
+    console.log(req.query.page);
+    const result = await getPageDataHour(req.query.pageSize, req.query.page);
+    return res.status(201).json({
+      success: true,
+      message: "Successfully fetch the data",
+      err: {},
+      data: result,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      data: {},
+      success: false,
+      message: "Not able to fetch the data",
+      err: error,
+    });
+  }
+};
+
 module.exports = {
   candleData,
+  checkPagination,
 };
