@@ -1,28 +1,24 @@
-const PositionRepository = require("../repository/positionRepository");
+const PositionService = require("../services/positionData-service.js");
+const positionService = new PositionService();
 
 const getLeaderBoardData = async (req, res) => {
   try {
-    const result = await PositionRepository.getLeaderBoardData();
-    result.sort(function (a, b) {
-      return parseFloat(a.Totalpnl) - parseFloat(b.Totalpnl);
-    });
+    const result = await positionService.getLeaderBoardData();
     res.send(result);
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 };
 
 const getPositionHistoryData = async (req, res) => {
   try {
-    let address = req.body.address; //TODO->?
-    const data = await PositionRepository.getPositionHistory(address);
-    if (data) {
-      res.send(data.CompletedPosition);
-    } else {
-      res.send(false);
-    }
+    // let address = req.body.address; //TODO->?
+    const data = await positionService.getPositionHistory(req.body.address);
+    res.send(data.CompletedPosition);
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 

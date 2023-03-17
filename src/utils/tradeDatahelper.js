@@ -1,20 +1,10 @@
-const {
-  updateDayData,
-  updateHourData,
-  updateMinData,
-  createDayData,
-  createHourData,
-  createMinData,
-  previousDayData,
-  previousHourData,
-  previousMinData,
-} = require("../repository/tradeDataRepository");
+const TradeDataRepository = require("../repository/Trade-Repository.js");
+const tradeDataRepo = new TradeDataRepository();
 
 const { VMMCONTRACT } = require("../config/serverConfig");
 const PRECISION = 1000000000000000000;
 
 const tradeaction = async () => {
-  //axios request
   let storage = await axios
     .get(`https://api.ghostnet.tzkt.io/v1/contracts/${VMMCONTRACT}/storage/`)
     .then((result) => {
@@ -23,11 +13,11 @@ const tradeaction = async () => {
 
   let marketpricedata = (storage.current_mark_price / PRECISION).toFixed(4);
 
-  var previous_data_Minute = await previousMinData();
+  var previous_data_Minute = await tradeDataRepo.previousMinData();
 
-  var previous_data_Hour = await previousHourData();
+  var previous_data_Hour = await tradeDataRepo.previousHourData();
 
-  var previous_data_Day = await previousDayData();
+  var previous_data_Day = await tradeDataRepo.previousDayData();
 
   if (previous_data_Minute.length == 0) {
     let data = {
@@ -38,11 +28,12 @@ const tradeaction = async () => {
       Low: marketpricedata,
     };
 
-    createMinData(data);
+    await tradeDataRepo.createMinData(data);
 
-    createHourData(data);
+    await tradeDataRepo.createHourData(data);
 
-    createDayData(data);
+    await tradeDataRepo.createDayData(data);
+
     console.log("1 document upDated 000.1");
     return;
   }
@@ -62,7 +53,7 @@ const tradeaction = async () => {
       Low: marketpricedata,
     };
 
-    createMinData(data);
+    await tradeDataRepo.createMinData(data);
     console.log("1 document upDated 000.12");
   }
 
@@ -75,7 +66,7 @@ const tradeaction = async () => {
       Low: marketpricedata,
     };
 
-    createHourData(data);
+    await tradeDataRepo.createHourData(data);
     console.log("1 document upDated 000.123");
   }
   console.log(previous_data_Day[0]);
@@ -88,7 +79,7 @@ const tradeaction = async () => {
       Low: marketpricedata,
     };
 
-    createDayData(data);
+    await tradeDataRepo.createDayData(data);
     console.log("1 document upDated");
     return;
   } else {
@@ -104,7 +95,7 @@ const tradeaction = async () => {
       };
 
       const prevMinId = previous_data_Minute[0]._id;
-      updateMinData(prevMinId, newvalues);
+      await tradeDataRepo.updateMinData(prevMinId, newvalues);
     } else if (marketpricedata < previous_data_Minute[0].Low) {
       var newvalues = {
         $set: {
@@ -117,7 +108,7 @@ const tradeaction = async () => {
       };
 
       const prevMinId = previous_data_Minute[0]._id;
-      updateMinData(prevMinId, newvalues);
+      await tradeDataRepo.updateMinData(prevMinId, newvalues);
     } else {
       var newvalues = {
         $set: {
@@ -130,7 +121,7 @@ const tradeaction = async () => {
       };
 
       const prevMinId = previous_data_Minute[0]._id;
-      updateMinData(prevMinId, newvalues);
+      await tradeDataRepo.updateMinData(prevMinId, newvalues);
     }
 
     if (marketpricedata > previous_data_Hour[0].High) {
@@ -145,7 +136,7 @@ const tradeaction = async () => {
       };
 
       const prevHourId = previous_data_Hour[0]._id;
-      updateHourData(prevHourId, newvalues);
+      await tradeDataRepo.updateHourData(prevHourId, newvalues);
     } else if (marketpricedata < previous_data_Hour[0].Low) {
       var newvalues = {
         $set: {
@@ -158,7 +149,7 @@ const tradeaction = async () => {
       };
 
       const prevHourId = previous_data_Hour[0]._id;
-      updateHourData(prevHourId, newvalues);
+      await tradeDataRepo.updateHourData(prevHourId, newvalues);
     } else {
       var newvalues = {
         $set: {
@@ -171,7 +162,7 @@ const tradeaction = async () => {
       };
 
       const prevHourId = previous_data_Hour[0]._id;
-      updateHourData(prevHourId, newvalues);
+      await tradeDataRepo.updateHourData(prevHourId, newvalues);
     }
 
     if (marketpricedata > previous_data_Day[0].High) {
@@ -186,7 +177,7 @@ const tradeaction = async () => {
       };
 
       const prevDayId = previous_data_Day[0]._id;
-      updateDayData(prevDayId, newvalues);
+      await tradeDataRepo.updateDayData(prevDayId, newvalues);
     } else if (marketpricedata < previous_data_Day[0].Low) {
       var newvalues = {
         $set: {
@@ -199,7 +190,7 @@ const tradeaction = async () => {
       };
 
       const prevDayId = previous_data_Day[0]._id;
-      updateDayData(prevDayId, newvalues);
+      await tradeDataRepo.updateDayData(prevDayId, newvalues);
     } else {
       var newvalues = {
         $set: {
@@ -212,7 +203,7 @@ const tradeaction = async () => {
       };
 
       const prevDayId = previous_data_Day[0]._id;
-      updateDayData(prevDayId, newvalues);
+      await tradeDataRepo.updateDayData(prevDayId, newvalues);
     }
   }
 };

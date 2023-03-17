@@ -1,4 +1,3 @@
-
 //testing
 const TradeDataService = require("../services/tradeData-service.js");
 
@@ -63,5 +62,4 @@ const checkPagination = async (req, res) => {
 module.exports = {
   candleData,
   checkPagination,
-  checkAPI,
 };

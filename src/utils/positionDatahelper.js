@@ -1,10 +1,11 @@
 const { VMMCONTRACT } = require("../config/serverConfig");
 const PRECISION = 1000000000000000000;
 
-const PositionRepository = require("../repository/positionRepository");
+const PositionRepository = require("../repository/Position-Repository");
 
 const positionAction = async (opHash) => {
   this.positionRepository = new PositionRepository();
+
   let TransactionId = opHash;
   console.log(TransactionId);
 
