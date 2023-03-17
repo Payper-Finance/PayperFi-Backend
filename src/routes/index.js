@@ -15,4 +15,8 @@ router.post("/positionshistory", positionController.getPositionHistoryData);
 
 router.get("/pagination", tradeDataController.checkPagination);
 
+
+// check-->
+// router.get("/checkAPI", tradeDataController.checkAPI);
+
 module.exports = router;

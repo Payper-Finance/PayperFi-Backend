@@ -12,11 +12,11 @@ const getData5min = async () => {
       return data.reverse();
     })
     .catch((err) => console.log(err));
-
+  console.log(result); //check
   return result;
 };
 
-// pagination data -->
+// pagination for hour  data for 5min  -->
 const getPageDataHour = async (pageSize, page) => {
   try {
     const result = await TradeDataHour.find({})

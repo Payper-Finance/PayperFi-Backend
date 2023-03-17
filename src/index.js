@@ -61,19 +61,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/ApiRoutes", ApiRoutes); //
 
-//cleaned
+//cleaned --> connection to the database
 const server = app.listen(PORT, async () => {
   console.log(`Server started on ${PORT}`);
   await connect();
   console.log("MongoDB Connected");
 });
 
+//socket connection
 const iO = require("socket.io")(server, {
   cors: {
     origin: "*",
   },
 });
 
+//send Data function --> helper function
 const senddata = async () => {
   var x = await TradeDataMinute.find()
     .limit(1)
@@ -88,16 +90,19 @@ const senddata = async () => {
 iO.on("connection", (client) => {
   client.on("message", async (data) => {
     if (data == "history") {
+      //db query
       TradeDataMinute.find({}, function (err, result) {
         if (err) throw err;
 
         client.emit("data1", result);
       });
     } else if (data == "upDate") {
+      // send data
       var x = await senddata();
       client.emit("data2", x);
     }
   });
+  //db query
   TradeDataMinute.watch([
     { $match: { operationType: { $in: ["insert"] } } },
   ]).on("change", (data) => {
@@ -114,6 +119,7 @@ iO.on("connection", (client) => {
 
 console.log("A user connected");
 
+//connection making
 const connection = new signalR.HubConnectionBuilder()
   .withUrl("https://api.ghostnet.tzkt.io/v1/ws")
   .build();
@@ -127,6 +133,7 @@ async function init() {
 }
 
 connection.onclose(init);
+
 
 connection.on("operations", (msg) => {
   try {

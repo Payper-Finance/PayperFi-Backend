@@ -29,13 +29,6 @@ const helperCandle = async (result) => {
   return newarr;
 };
 
-
-
-
-
-
-
-
 module.exports = {
   helperCandle,
 };
