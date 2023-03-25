@@ -4,18 +4,15 @@ const tradeDataController = require("../controller/tradeDataController");
 
 const router = express.Router();
 
-//   route --> ApiRoutes/granularity
+//   route -->  ApiRoutes/granularity
 router.get("/granularity", tradeDataController.candleData);
 
-//    route --->  ApiRoutes/leaderboard
+//   route --->  ApiRoutes/leaderboard
 router.get("/leaderboard", positionController.getLeaderBoardData);
 
-//   route --> ApiRoutes/positionshistory
+//   route -->  ApiRoutes/positionshistory
 router.post("/positionshistory", positionController.getPositionHistoryData);
 
-router.get("/pagination", tradeDataController.checkPagination);
-
-// check-->
-// router.get("/checkAPI", tradeDataController.checkAPI);
+router.get("/hourpagination", tradeDataController.hourPagination);
 
 module.exports = router;

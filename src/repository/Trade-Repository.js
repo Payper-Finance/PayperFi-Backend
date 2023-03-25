@@ -158,23 +158,20 @@ class TradeDataRepository {
     }
   }
 
-  /*
-    PAGINATION -->
-    const getPageDataHour = async (pageSize, page) => 
-    {
-      try {
-        const result = await TradeDataHour.find({})
-          .sort({ _id: -1 })
-          .limit(pageSize)
-          .skip(pageSize * page);
-        return result;
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-     };
-
-   */
+  // PAGINATION -->
+  // for fetching Hour Data -->
+  async getPageDataHour(pageSize, page) {
+    try {
+      const result = await TradeDataHour.find({})
+        .sort({ _id: -1 })
+        .limit(pageSize)
+        .skip(pageSize * page);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }
 
 module.exports = TradeDataRepository;

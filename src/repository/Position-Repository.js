@@ -11,7 +11,6 @@ class PositionRepository {
       throw error;
     }
   }
-
   // get position history -->
   async getPositionHistory(address) {
     try {
@@ -34,7 +33,6 @@ class PositionRepository {
       throw error;
     }
   }
-
   //get position address -->
   async getPositionAddress(address) {
     try {
@@ -47,7 +45,6 @@ class PositionRepository {
       throw error;
     }
   }
-
   //update -->
   async updatePositionAddress(key, data) {
     try {
@@ -57,7 +54,6 @@ class PositionRepository {
       throw error;
     }
   }
-
   // position create
   async positionCreate(data) {
     try {
